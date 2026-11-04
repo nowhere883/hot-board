@@ -102,7 +102,9 @@ def _refresh_button(generated: str) -> str:
     if not url.startswith("https://github.com/"):
         return ""
     return ('<button class="nav-link refresh-button js-only" id="refresh-button" type="button" data-url="{}" data-generated="{}">'
-            '{}<span id="refresh-label">刷新</span></button>').format(_text(url), _text(generated), _icon("spark"))
+            '{}<span id="refresh-label">刷新</span></button>'
+            '<div class="refresh-toast" id="refresh-toast" role="status" aria-live="polite" hidden></div>').format(
+                _text(url), _text(generated), _icon("spark"))
 
 
 def _zone_bar() -> str:
