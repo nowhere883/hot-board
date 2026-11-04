@@ -298,6 +298,49 @@
     if (event.key === 'Escape') { event.preventDefault(); dismissStar(); }
   });
   if (!starDismissed) window.setTimeout(showStar, 12000);
+
+  // Local addition: manual refresh for the published site. Checks hot.json for a
+  // newer snapshot first; otherwise opens the workflow page and waits for one.
+  var refreshButton = document.getElementById('refresh-button');
+  if (refreshButton) {
+    var refreshLabel = document.getElementById('refresh-label');
+    var shownAt = refreshButton.getAttribute('data-generated') || '';
+    var waiting = null;
+    function latest() {
+      return fetch('hot.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { return d && d.generated_at ? String(d.generated_at) : ''; })
+        .catch(function () { return ''; });
+    }
+    function reloadFresh() {
+      refreshLabel.textContent = '有新数据，正在更新…';
+      location.replace(location.pathname + '?t=' + Date.now() + location.hash);
+    }
+    function wait(startedAt) {
+      if (Date.now() - startedAt > 15 * 60 * 1000) {
+        refreshLabel.textContent = '还没等到新数据，稍后再点一次';
+        refreshButton.disabled = false; waiting = null; return;
+      }
+      latest().then(function (at) {
+        if (at && at > shownAt) { reloadFresh(); return; }
+        waiting = window.setTimeout(function () { wait(startedAt); }, 20000);
+      });
+    }
+    refreshButton.addEventListener('click', function () {
+      if (waiting) return;
+      refreshButton.disabled = true;
+      refreshLabel.textContent = '检查中…';
+      // Open the tab inside the click so pop-up blockers allow it; fill it in after the check.
+      var tab = window.open('', '_blank');
+      latest().then(function (at) {
+        if (at && at > shownAt) { if (tab) tab.close(); reloadFresh(); return; }
+        if (tab) { tab.opener = null; tab.location.href = refreshButton.getAttribute('data-url'); }
+        else location.href = refreshButton.getAttribute('data-url');
+        refreshLabel.textContent = '在 GitHub 点 Run workflow，约 2 分钟后自动更新';
+        wait(Date.now());
+      });
+    });
+  }
   themeLabel();
   update();
   root.classList.add('enhanced');

@@ -34,10 +34,15 @@ jobs:
           LAST30DAYS_OUTPUT_DIR: ${{ runner.temp }}/hot-out
           LAST30DAYS_DISABLE_BROWSER: "1"
           LAST30DAYS_ZONES_FILE: ${{ github.workspace }}/zones.json
+          LAST30DAYS_REFRESH_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/hourly-hot.yml
         run: |
+          # 选题页先放进输出目录，热榜页才会显示「选题排序」入口
+          mkdir -p "$LAST30DAYS_OUTPUT_DIR" site
+          cp topics/*.html "$LAST30DAYS_OUTPUT_DIR/" 2>/dev/null || true
           python scripts/last30days.py --hot --hot-sources boards,news --hot-limit 30 --emit html-path
-          mkdir -p site
           cp "$LAST30DAYS_OUTPUT_DIR/hot.html" site/index.html
+          cp "$LAST30DAYS_OUTPUT_DIR/hot.html" site/hot.html
+          cp topics/*.html site/ 2>/dev/null || true
           cp "$LAST30DAYS_OUTPUT_DIR/hot.json" site/hot.json
           touch site/.nojekyll
 

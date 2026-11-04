@@ -89,9 +89,20 @@ def _zones() -> list:
 
 def _topics_link() -> str:
     # Local addition: link to the topic-ranking page written next to hot.html.
-    if not (Path.home() / ".local/share/last30days/out/topics.html").exists():
+    out_dir = Path(os.environ.get("LAST30DAYS_OUTPUT_DIR") or Path.home() / ".local/share/last30days/out")
+    if not (out_dir / "topics.html").exists():
         return ""
     return '<a class="nav-link topics-link" href="topics.html">{}选题排序</a>'.format(_icon("star"))
+
+
+def _refresh_button(generated: str) -> str:
+    # Local addition: the published site sets LAST30DAYS_REFRESH_URL to the
+    # workflow's "Run workflow" page. No token is embedded in the page.
+    url = os.environ.get("LAST30DAYS_REFRESH_URL", "").strip()
+    if not url.startswith("https://github.com/"):
+        return ""
+    return ('<button class="nav-link refresh-button js-only" id="refresh-button" type="button" data-url="{}" data-generated="{}">'
+            '{}<span id="refresh-label">刷新</span></button>').format(_text(url), _text(generated), _icon("spark"))
 
 
 def _zone_bar() -> str:
@@ -263,7 +274,7 @@ def render_page(data: Dict[str, Any], per_board: int, max_topics: int, site_titl
 <header class="nav">
   <a class="brand" href="https://github.com/Jesseovo/last30days-skill-cn" {external}>{brand}<span>last30days<span style="opacity:.45"> / </span>热榜</span></a>
   <span class="brand-note">A LITTLE CURIOSITY, EVERY DAY.</span>
-  <div class="nav-actions">{topics_link}<a class="nav-link" href="https://github.com/Jesseovo/last30days-skill-cn" {external}>{github}GitHub</a>
+  <div class="nav-actions">{refresh_button}{topics_link}<a class="nav-link" href="https://github.com/Jesseovo/last30days-skill-cn" {external}>{github}GitHub</a>
     <button class="icon-button js-only" id="theme-toggle" type="button" aria-label="切换主题">{moon}{sun}</button></div>
 </header>
 <main>
@@ -321,6 +332,6 @@ def render_page(data: Dict[str, Any], per_board: int, max_topics: int, site_titl
         title=_text(site_title), generated=_text(data["generated_at"]), theme_init=theme_init,
         style=style, external=_LINK, brand=_BRAND, github=_icon("github"), moon=_icon("moon", "theme-moon"),
         sun=_icon("sun", "theme-sun"), live=live, total=total, filter_note=filter_note, desk=_DESK,
-        filters=filters, zone_bar=_zone_bar(), topics_link=_topics_link(), search=_icon("search"), close=_icon("close"), chevron=_icon("chevron"), external_icon=_icon("external"), topic_section=topic_section,
+        filters=filters, zone_bar=_zone_bar(), topics_link=_topics_link(), refresh_button=_refresh_button(str(data["generated_at"])), search=_icon("search"), close=_icon("close"), chevron=_icon("chevron"), external_icon=_icon("external"), topic_section=topic_section,
         grid=_icon("grid"), board_count=len(boards), board_cards="".join(board_cards), source_tabs="".join(source_tabs), spark=_icon("spark"),
         star=_icon("star"), script=script)

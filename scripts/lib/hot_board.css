@@ -325,3 +325,8 @@ li:nth-child(3) .rank { color: #7c8d62; background: #eff2e5; font-weight: 700; }
 .topics-link { padding: 6px 12px; border-radius: 8px; background: var(--accent); color: var(--card); font-weight: 600; }
 .topics-link:hover { color: var(--card); opacity: .88; }
 .topics-link .icon { width: 13px; height: 13px; }
+.refresh-button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); cursor: pointer; }
+.refresh-button:hover { border-color: var(--accent); }
+.refresh-button:disabled { cursor: progress; color: var(--accent); }
+.refresh-button .icon { width: 13px; height: 13px; }
+@media (max-width: 640px) { .nav-actions .nav-link:not(.refresh-button):not(.topics-link) { display: none; } #refresh-label { max-width: 150px; white-space: normal; text-align: left; line-height: 1.3; } }
